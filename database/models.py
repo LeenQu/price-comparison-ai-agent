@@ -1,23 +1,20 @@
 from sqlalchemy.orm import DeclarativeBase
-from sqlalchemy import Column
-from sqlalchemy import Integer
-from sqlalchemy import String
-from sqlalchemy import Float
+from sqlalchemy import Column, Integer, String, Float
 
 
 class Base(DeclarativeBase):
     pass
 
 
-class Product(Base):
+class ProductDB(Base):
 
     __tablename__ = "products"
 
-    id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True, index=True)
 
-    website = Column(String)
+    website = Column(String, nullable=False)
 
-    name = Column(String)
+    name = Column(String, nullable=False)
 
     price = Column(Float)
 
@@ -27,4 +24,4 @@ class Product(Base):
 
     image = Column(String)
 
-    product_url = Column(String)
+    product_url = Column(String, unique=True, nullable=False)

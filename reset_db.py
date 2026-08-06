@@ -1,4 +1,4 @@
-from database.connection import engine
+from database.database import engine
 from database.models import Base
 
 print("Dropping all tables...")

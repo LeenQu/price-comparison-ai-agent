@@ -1,4 +1,4 @@
-from database.connection import SessionLocal
+from database.database import SessionLocal
 from database.models import Product
 
 

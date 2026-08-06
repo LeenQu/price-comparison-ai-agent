@@ -1,15 +1,14 @@
-from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import String
+from dataclasses import dataclass
+from typing import Optional
 
 
-class Base(DeclarativeBase):
-    pass
-
-
-class Product(Base):
-    __tablename__ = "products"
-
-    id: Mapped[int] = mapped_column(primary_key=True)
-    product_name: Mapped[str] = mapped_column(String(255))
-    brand: Mapped[str] = mapped_column(String(255))
-    category: Mapped[str] = mapped_column(String(100))
+@dataclass
+class Product:
+    website: str
+    title: str
+    price: Optional[float]
+    rating: Optional[float]
+    reviews: Optional[int]
+    image: Optional[str]
+    url: Optional[str]
+    asin: Optional[str] = None  # Amazon-specific unique ID, None for other sites
