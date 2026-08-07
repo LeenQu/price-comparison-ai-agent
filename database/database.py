@@ -17,3 +17,8 @@ SessionLocal = sessionmaker(
     autoflush=False,
     bind=engine
 )
+
+# Create tables if they don't exist
+from database.models import Base
+
+Base.metadata.create_all(bind=engine)

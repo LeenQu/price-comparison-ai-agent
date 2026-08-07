@@ -89,29 +89,15 @@ class AmazonCrawler:
         image = self.safe_attr(card.locator("img.s-image"), "src")
 
         # ---------------- Product URL ----------------
-        # product_url = None
-        # try:
-        #     links = card.locator("a[href*='/dp/']")
-        #     if links.count() > 0:
-        #         href = links.first.get_attribute("href")
-        #         if href:
-        #             product_url = self.BASE_URL + href if href.startswith("/") else href
-        # except:
-        #     pass
-        
         product_url = None
-
         try:
-            links = card.locator("a")
-
-            print(f"\n--- {title} ---")
-
-            for j in range(min(10, links.count())):
-                href = links.nth(j).get_attribute("href")
-                print(href)
-
-        except Exception as e:
-            print(e)
+            links = card.locator("a[href*='/dp/']")
+            if links.count() > 0:
+                href = links.first.get_attribute("href")
+                if href:
+                    product_url = self.BASE_URL + href if href.startswith("/") else href
+        except:
+            pass
 
         # Skip cards where we couldn't get a title or url — they're not
         # usable products (often ads/placeholders/sponsored widgets)

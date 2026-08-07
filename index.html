@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Price Radar — Amazon vs Noon</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg: #f6f6f4;
+    --surface: #ffffff;
+    --border: #e4e3de;
+    --text: #16161b;
+    --muted: #6b6b76;
+    --accent: #2f6f5e;
+    --accent-soft: #e4efec;
+    --amazon: #21324a;
+    --noon: #b8860b;
+    --noon-bg: #fff6df;
+    --warn: #9a5b12;
+    --warn-bg: #fdf1e2;
+    --radius: 10px;
+  }
+  *{ box-sizing: border-box; }
+  body{
+    margin:0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  h1,h2,h3, .brand{
+    font-family: 'Space Grotesk', 'Inter', sans-serif;
+  }
+  .wrap{ max-width: 880px; margin: 0 auto; padding: 28px 20px 80px; }
+
+  header.top{
+    display:flex; align-items:baseline; justify-content: space-between;
+    gap: 16px; flex-wrap: wrap; margin-bottom: 22px;
+  }
+  .brand{ font-size: 22px; font-weight: 700; letter-spacing: -0.01em; }
+  .brand span{ color: var(--accent); }
+  .tagline{ color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+  .api-config{
+    display:flex; align-items:center; gap:8px; font-size: 12px; color: var(--muted);
+  }
+  .api-config input{
+    border:1px solid var(--border); border-radius: 6px; padding: 5px 8px;
+    font-size: 12px; width: 190px; font-family: inherit; color: var(--text); background: var(--surface);
+  }
+
+  nav.tabs{
+    display:flex; gap: 4px; border-bottom: 1px solid var(--border);
+    margin-bottom: 22px; overflow-x:auto;
+  }
+  nav.tabs button{
+    appearance:none; border:none; background:none; cursor:pointer;
+    padding: 10px 14px; font-family:'Inter',sans-serif; font-size: 14px; font-weight: 500;
+    color: var(--muted); border-bottom: 2px solid transparent; white-space:nowrap;
+  }
+  nav.tabs button.active{ color: var(--text); border-bottom-color: var(--accent); font-weight:600; }
+
+  .panel{ display:none; }
+  .panel.active{ display:block; }
+
+  .card{
+    background: var(--surface); border:1px solid var(--border); border-radius: var(--radius);
+    padding: 18px; margin-bottom: 16px;
+  }
+
+  .field-row{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom: 12px; }
+  .field{ display:flex; flex-direction:column; gap:5px; flex: 1 1 160px; }
+  .field label{ font-size: 12px; color: var(--muted); font-weight:500; }
+  .field input, .field select{
+    border:1px solid var(--border); border-radius: 7px; padding: 9px 10px;
+    font-size: 14px; font-family: inherit; background: var(--surface); color: var(--text);
+  }
+  .field input:focus, .field select:focus{ outline: 2px solid var(--accent); outline-offset: 1px; }
+
+  button.primary{
+    appearance:none; border:none; background: var(--accent); color:white;
+    padding: 10px 18px; border-radius: 7px; font-size: 14px; font-weight:600;
+    cursor:pointer; font-family: inherit;
+  }
+  button.primary:hover{ filter: brightness(1.08); }
+  button.primary:disabled{ opacity:.55; cursor:default; }
+  button.secondary{
+    appearance:none; border:1px solid var(--border); background: var(--surface); color: var(--text);
+    padding: 9px 16px; border-radius: 7px; font-size: 13px; font-weight:500; cursor:pointer; font-family: inherit;
+  }
+
+  .status{ font-size: 13px; margin-top: 10px; }
+  .status.error{ color: #b3261e; }
+  .status.ok{ color: var(--accent); }
+
+  .site-badge{
+    display:inline-block; font-size:10.5px; font-weight:700; letter-spacing:.02em;
+    padding: 2px 7px; border-radius:5px; text-transform: uppercase;
+  }
+  .site-badge.amazon{ background: var(--amazon); color:white; }
+  .site-badge.noon{ background: var(--noon-bg); color: var(--noon); border:1px solid var(--noon); }
+
+  .product-row{
+    display:flex; justify-content: space-between; gap: 12px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .product-row:last-child{ border-bottom:none; }
+  .product-name{ font-size: 13.5px; font-weight:500; line-height:1.4; }
+  .product-meta{ font-size: 12px; color: var(--muted); margin-top: 3px; }
+  .product-price{ font-size: 15px; font-weight:700; white-space:nowrap; }
+  .product-link{ font-size: 12px; color: var(--accent); text-decoration:none; }
+  .product-link:hover{ text-decoration:underline; }
+
+  /* Compare "vs" bar - signature element */
+  .vs-card{ border:1px solid var(--border); border-radius: var(--radius); padding:14px; margin-bottom:12px; background: var(--surface); }
+  .vs-title{ font-size: 13px; font-weight:600; margin-bottom: 10px; }
+  .vs-bar{ display:flex; align-items:stretch; gap:0; border-radius: 8px; overflow:hidden; border:1px solid var(--border); }
+  .vs-side{ flex:1; padding: 10px 12px; position:relative; }
+  .vs-side.winner{ background: var(--accent-soft); }
+  .vs-side + .vs-side{ border-left:1px solid var(--border); }
+  .vs-site{ font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.03em; color: var(--muted); }
+  .vs-side.winner .vs-site{ color: var(--accent); }
+  .vs-price{ font-size: 18px; font-weight:700; margin-top: 2px; }
+  .vs-diff{ text-align:center; font-size:11.5px; color: var(--muted); margin-top:8px; }
+  .vs-diff b{ color: var(--text); }
+
+  .recommend-hero{ border:1px solid var(--accent); background: var(--accent-soft); border-radius: var(--radius); padding: 16px; margin-bottom:14px; }
+  .recommend-hero .tag{ font-size:11px; font-weight:700; color: var(--accent); text-transform:uppercase; letter-spacing:.03em; }
+  .recommend-hero .name{ font-size:16px; font-weight:700; margin: 4px 0 2px; }
+  .recommend-hero .price{ font-size: 20px; font-weight:700; }
+
+  .caveats{ margin-top: 10px; }
+  .caveat{
+    display:inline-block; font-size: 12px; background: var(--warn-bg); color: var(--warn);
+    padding: 4px 9px; border-radius: 6px; margin: 3px 6px 0 0;
+  }
+
+  .summary-text{ font-size: 14px; line-height:1.55; margin-bottom: 14px; }
+
+  .empty{ color: var(--muted); font-size: 13px; padding: 14px 0; }
+
+  .notes-list{
+    margin: 10px 0 0; padding: 0 0 0 18px; color: var(--muted); font-size: 12.5px; line-height: 1.6;
+  }
+  .notes-list li{ margin-bottom: 4px; }
+  .notes-list li:last-child{ margin-bottom: 0; }
+
+  .backend-toggle{ display:flex; gap:6px; }
+  .backend-toggle button{
+    flex:1; border:1px solid var(--border); background: var(--surface); padding:8px 10px;
+    border-radius:7px; font-size:13px; font-family:inherit; cursor:pointer; color: var(--muted); font-weight:500;
+  }
+  .backend-toggle button.active{ border-color: var(--accent); color: var(--accent); background: var(--accent-soft); font-weight:600; }
+
+  footer{ text-align:center; color: var(--muted); font-size: 11.5px; margin-top: 30px; }
+
+  @media (max-width: 520px){
+    .vs-bar{ flex-direction:column; }
+    .vs-side + .vs-side{ border-left:none; border-top:1px solid var(--border); }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div>
+      <div class="brand">Price <span>Radar</span></div>
+      <div class="tagline">Amazon.sa vs Noon.com — iPhone price tracking</div>
+    </div>
+    <div class="api-config">
+      API base:
+      <input id="apiBase" value="http://127.0.0.1:8000" />
+    </div>
+  </header>
+
+  <nav class="tabs">
+    <button data-tab="search" class="active">Search</button>
+    <button data-tab="compare">Compare</button>
+    <button data-tab="ask">Ask AI</button>
+    <button data-tab="recommend">Recommend</button>
+    <button data-tab="crawl">Crawl</button>
+  </nav>
+
+  <!-- SEARCH -->
+  <section class="panel active" id="panel-search">
+    <div class="card">
+      <div class="field-row">
+        <div class="field" style="flex:2;">
+          <label for="searchQuery">Search saved products</label>
+          <input id="searchQuery" placeholder="iphone 15" value="iphone" />
+        </div>
+        <div class="field" style="max-width:140px;">
+          <label for="searchWebsite">Website</label>
+          <select id="searchWebsite">
+            <option value="">Both</option>
+            <option value="Amazon">Amazon</option>
+            <option value="Noon">Noon</option>
+          </select>
+        </div>
+        <div class="field" style="max-width:100px;">
+          <label for="searchLimit">Limit</label>
+          <input id="searchLimit" type="number" value="20" />
+        </div>
+      </div>
+      <button class="primary" onclick="runSearch()">Search</button>
+      <div class="status" id="searchStatus"></div>
+    </div>
+    <div class="card" id="searchResults"></div>
+  </section>
+
+  <!-- COMPARE -->
+  <section class="panel" id="panel-compare">
+    <div class="card">
+      <div class="field-row">
+        <div class="field" style="flex:2;">
+          <label for="compareQuery">Phone model</label>
+          <input id="compareQuery" placeholder="iphone 15" value="iphone 15" />
+        </div>
+        <div class="field" style="max-width:160px;">
+          <label for="compareLimit">Limit per site</label>
+          <input id="compareLimit" type="number" value="30" />
+        </div>
+      </div>
+      <button class="primary" onclick="runCompare()">Compare prices</button>
+      <div class="status" id="compareStatus"></div>
+    </div>
+    <div id="compareResults"></div>
+  </section>
+
+  <!-- ASK -->
+  <section class="panel" id="panel-ask">
+    <div class="card">
+      <div class="backend-toggle" style="margin-bottom:14px;">
+        <button id="askBackendClaude" class="active" onclick="setAskBackend('claude')">Claude (cloud)</button>
+        <button id="askBackendOllama" onclick="setAskBackend('ollama')">Ollama (local)</button>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="askQuery">Search scope</label>
+          <input id="askQuery" placeholder="iphone" value="iphone" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field" style="flex:1 1 100%;">
+          <label for="askQuestion">Your question</label>
+          <input id="askQuestion" placeholder="What's the cheapest iPhone with good reviews?" value="What's the cheapest iPhone with good reviews?" />
+        </div>
+      </div>
+      <button class="primary" onclick="runAsk()">Ask</button>
+      <div class="status" id="askStatus"></div>
+    </div>
+    <div id="askResults"></div>
+  </section>
+
+  <!-- RECOMMEND -->
+  <section class="panel" id="panel-recommend">
+    <div class="card">
+      <div class="field-row">
+        <div class="field">
+          <label for="recCategory">Category</label>
+          <input id="recCategory" value="iphone" />
+        </div>
+        <div class="field">
+          <label for="recBudget">Max budget (SAR)</label>
+          <input id="recBudget" type="number" placeholder="e.g. 3000" />
+        </div>
+        <div class="field">
+          <label for="recRating">Min rating</label>
+          <input id="recRating" type="number" step="0.1" min="0" max="5" placeholder="e.g. 4.0" />
+        </div>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="recStorage">Storage contains</label>
+          <input id="recStorage" placeholder="e.g. 128GB" />
+        </div>
+        <div class="field">
+          <label for="recWebsite">Website</label>
+          <select id="recWebsite">
+            <option value="">Both</option>
+            <option value="Amazon">Amazon</option>
+            <option value="Noon">Noon</option>
+          </select>
+        </div>
+      </div>
+      <button class="primary" onclick="runRecommend()">Get recommendation</button>
+      <div class="status" id="recStatus"></div>
+    </div>
+    <div id="recResults"></div>
+  </section>
+
+  <!-- CRAWL -->
+  <section class="panel" id="panel-crawl">
+    <div class="card">
+      <div class="field-row">
+        <div class="field" style="flex:2;">
+          <label for="crawlQuery">Query to crawl</label>
+          <input id="crawlQuery" placeholder="iphone" value="iphone" />
+        </div>
+      </div>
+      <button class="primary" onclick="runCrawl()">Start crawl</button>
+      <div class="status" id="crawlStatus"></div>
+      <p class="empty" style="margin-top:12px;">
+        Runs both crawlers in the background - can take a few minutes.
+        Check the Search tab afterward to see new results.
+      </p>
+    </div>
+  </section>
+
+  <footer>Price Radar — internal project tool, not affiliated with Amazon or Noon.</footer>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const apiBase = () => $('apiBase').value.replace(/\/$/, '');
+
+// ---------- Tabs ----------
+document.querySelectorAll('nav.tabs button').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('nav.tabs button').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    $('panel-' + btn.dataset.tab).classList.add('active');
+  });
+});
+
+// ---------- Helpers ----------
+function setStatus(id, msg, kind){
+  const el = $(id);
+  el.textContent = msg || '';
+  el.className = 'status' + (kind ? ' ' + kind : '');
+}
+
+async function apiGet(path){
+  const url = apiBase() + path;
+  let res;
+  try{
+    res = await fetch(url);
+  }catch(err){
+    throw new Error(
+      `Couldn't reach the API at ${apiBase()}. Is the server running ` +
+      `(uvicorn api.main:app --reload) and is the API base URL above correct?`
+    );
+  }
+  if(!res.ok){
+    let detail = res.statusText;
+    try{ const body = await res.json(); if(body.detail) detail = body.detail; }catch(e){}
+    throw new Error(`${res.status}: ${detail}`);
+  }
+  return res.json();
+}
+
+async function apiPost(path){
+  const url = apiBase() + path;
+  let res;
+  try{
+    res = await fetch(url, { method: 'POST' });
+  }catch(err){
+    throw new Error(`Couldn't reach the API at ${apiBase()}. Is the server running?`);
+  }
+  if(!res.ok){
+    let detail = res.statusText;
+    try{ const body = await res.json(); if(body.detail) detail = body.detail; }catch(e){}
+    throw new Error(`${res.status}: ${detail}`);
+  }
+  return res.json();
+}
+
+function productRowHTML(p){
+  const site = (p.website || '').toLowerCase();
+  const badgeClass = site === 'amazon' ? 'amazon' : 'noon';
+  const price = (p.price !== null && p.price !== undefined) ? `${p.price.toLocaleString()} SAR` : '—';
+  const rating = (p.rating !== null && p.rating !== undefined) ? `★ ${p.rating}` : '';
+  const reviews = (p.reviews !== null && p.reviews !== undefined) ? `(${p.reviews.toLocaleString()} reviews)` : '';
+  return `
+    <div class="product-row">
+      <div style="flex:1;">
+        <span class="site-badge ${badgeClass}">${p.website || ''}</span>
+        <div class="product-name">${escapeHTML(p.name || '')}</div>
+        <div class="product-meta">${rating} ${reviews}</div>
+        ${p.product_url ? `<a class="product-link" href="${p.product_url}" target="_blank" rel="noopener">View listing →</a>` : ''}
+      </div>
+      <div class="product-price">${price}</div>
+    </div>
+  `;
+}
+
+function escapeHTML(str){
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+function caveatsHTML(caveats){
+  if(!caveats || !caveats.length) return '';
+  return `<div class="caveats">${caveats.map(c => `<span class="caveat">${escapeHTML(c)}</span>`).join('')}</div>`;
+}
+
+function notesListHTML(notes){
+  if(!notes) return '';
+  const list = Array.isArray(notes) ? notes : [notes];
+  const clean = list.filter(n => n && n.trim());
+  if(!clean.length) return '';
+  return `<ul class="notes-list">${clean.map(n => `<li>${escapeHTML(n)}</li>`).join('')}</ul>`;
+}
+
+function recommendedCardHTML(p){
+  if(!p) return '<p class="empty">No specific product recommended.</p>';
+  const site = (p.website || '').toLowerCase();
+  const badgeClass = site === 'amazon' ? 'amazon' : 'noon';
+  return `
+    <div class="recommend-hero">
+      <span class="site-badge ${badgeClass}">${p.website || ''}</span>
+      <div class="name">${escapeHTML(p.name || '')}</div>
+      <div class="price">${p.price !== undefined ? p.price.toLocaleString() + ' SAR' : ''}</div>
+      ${p.rating !== undefined && p.rating !== null ? `<div class="product-meta">★ ${p.rating} (${(p.reviews||0).toLocaleString()} reviews)</div>` : ''}
+      ${p.url ? `<a class="product-link" href="${p.url}" target="_blank" rel="noopener">View listing →</a>` : ''}
+    </div>
+  `;
+}
+
+function alternativesHTML(alts){
+  if(!alts || !alts.length) return '';
+  return `<div class="card"><h3 style="margin-top:0;font-size:14px;">Alternatives</h3>` +
+    alts.map(a => `
+      <div class="product-row">
+        <div style="flex:1;">
+          <span class="site-badge ${(a.website||'').toLowerCase()==='amazon'?'amazon':'noon'}">${a.website||''}</span>
+          <div class="product-name">${escapeHTML(a.name||'')}</div>
+          ${a.why ? `<div class="product-meta">${escapeHTML(a.why)}</div>` : ''}
+          ${a.url ? `<a class="product-link" href="${a.url}" target="_blank" rel="noopener">View listing →</a>` : ''}
+        </div>
+        <div class="product-price">${a.price !== undefined ? a.price.toLocaleString() + ' SAR' : ''}</div>
+      </div>
+    `).join('') + `</div>`;
+}
+
+// ---------- Search ----------
+async function runSearch(){
+  const query = $('searchQuery').value.trim();
+  const website = $('searchWebsite').value;
+  const limit = $('searchLimit').value || 20;
+  if(!query){ setStatus('searchStatus', 'Enter a search term.', 'error'); return; }
+
+  setStatus('searchStatus', 'Searching…');
+  $('searchResults').innerHTML = '';
+
+  try{
+    let path = `/search?query=${encodeURIComponent(query)}&limit=${limit}`;
+    if(website){ path += `&website=${encodeURIComponent(website)}`; }
+    const data = await apiGet(path);
+    const results = data.results || [];
+
+    setStatus('searchStatus', `Found ${results.length} product(s).`, 'ok');
+    $('searchResults').innerHTML = results.length
+      ? results.map(productRowHTML).join('')
+      : '<p class="empty">No products found. Try the Crawl tab to fetch fresh listings.</p>';
+  }catch(err){
+    setStatus('searchStatus', err.message, 'error');
+  }
+}
+
+// ---------- Compare ----------
+async function runCompare(){
+  const query = $('compareQuery').value.trim();
+  const limit = $('compareLimit').value || 30;
+  if(!query){ setStatus('compareStatus', 'Enter a phone model.', 'error'); return; }
+
+  setStatus('compareStatus', 'Comparing… this calls Claude, can take a few seconds.');
+  $('compareResults').innerHTML = '';
+
+  try{
+    const path = `/compare?query=${encodeURIComponent(query)}&limit_per_website=${limit}`;
+    const data = await apiGet(path);
+    setStatus(
+      'compareStatus',
+      `${data.amazon_matches_found} Amazon / ${data.noon_matches_found} Noon listings scanned, ${data.matches.length} confirmed match(es).`,
+      'ok'
+    );
+
+    if(!data.matches.length){
+      $('compareResults').innerHTML = `<div class="card"><p class="empty" style="margin-bottom:8px;">No confident matches found.</p>${notesListHTML(data.notes)}</div>`;
+      return;
+    }
+
+    $('compareResults').innerHTML = data.matches.map(m => {
+      const amazonWins = m.cheaper_website === 'Amazon';
+      const noonWins = m.cheaper_website === 'Noon';
+      return `
+        <div class="vs-card">
+          <div class="vs-title">${escapeHTML(m.model_description)}</div>
+          <div class="vs-bar">
+            <div class="vs-side ${amazonWins ? 'winner' : ''}">
+              <div class="vs-site">Amazon</div>
+              <div class="vs-price">${m.amazon.price.toLocaleString()} SAR</div>
+            </div>
+            <div class="vs-side ${noonWins ? 'winner' : ''}">
+              <div class="vs-site">Noon</div>
+              <div class="vs-price">${m.noon.price.toLocaleString()} SAR</div>
+            </div>
+          </div>
+          <div class="vs-diff">
+            ${m.cheaper_website === 'Tie'
+              ? 'Same price on both sites'
+              : `<b>${m.cheaper_website}</b> is cheaper by <b>${m.price_difference.toLocaleString()} SAR</b>`}
+          </div>
+        </div>
+      `;
+    }).join('') + notesListHTML(data.notes);
+  }catch(err){
+    setStatus('compareStatus', err.message, 'error');
+  }
+}
+
+// ---------- Ask ----------
+let askBackend = 'claude';
+function setAskBackend(backend){
+  askBackend = backend;
+  $('askBackendClaude').classList.toggle('active', backend === 'claude');
+  $('askBackendOllama').classList.toggle('active', backend === 'ollama');
+}
+
+async function runAsk(){
+  const query = $('askQuery').value.trim();
+  const question = $('askQuestion').value.trim();
+  if(!query || !question){ setStatus('askStatus', 'Fill in both fields.', 'error'); return; }
+
+  setStatus('askStatus', askBackend === 'ollama' ? 'Asking local model…' : 'Asking Claude…');
+  $('askResults').innerHTML = '';
+
+  try{
+    const endpoint = askBackend === 'ollama' ? '/ask-local' : '/ask';
+    const path = `${endpoint}?query=${encodeURIComponent(query)}&question=${encodeURIComponent(question)}`;
+    const data = await apiGet(path);
+
+    setStatus('askStatus', `Based on ${data.based_on_products} product(s).`, 'ok');
+    $('askResults').innerHTML = `
+      <div class="card">
+        <p class="summary-text">${escapeHTML(data.summary || '')}</p>
+        ${recommendedCardHTML(data.recommended_product)}
+        ${caveatsHTML(data.caveats)}
+      </div>
+      ${alternativesHTML(data.alternatives)}
+    `;
+  }catch(err){
+    setStatus('askStatus', err.message, 'error');
+  }
+}
+
+// ---------- Recommend ----------
+async function runRecommend(){
+  const category = $('recCategory').value.trim() || 'iphone';
+  const budget = $('recBudget').value;
+  const rating = $('recRating').value;
+  const storage = $('recStorage').value.trim();
+  const website = $('recWebsite').value;
+
+  setStatus('recStatus', 'Finding candidates and asking Claude…');
+  $('recResults').innerHTML = '';
+
+  try{
+    const params = new URLSearchParams({ category });
+    if(budget) params.set('budget_max', budget);
+    if(rating) params.set('min_rating', rating);
+    if(storage) params.set('storage', storage);
+    if(website) params.set('website', website);
+
+    const data = await apiGet(`/recommend?${params.toString()}`);
+
+    setStatus('recStatus', `${data.candidates_found} candidate(s) matched your filters.`, 'ok');
+
+    if(data.candidates_found === 0){
+      $('recResults').innerHTML = `<div class="card"><p class="empty">${escapeHTML(data.summary || 'No products matched those filters.')}</p></div>`;
+      return;
+    }
+
+    $('recResults').innerHTML = `
+      <div class="card">
+        <p class="summary-text">${escapeHTML(data.summary || '')}</p>
+        ${recommendedCardHTML(data.recommended_product)}
+        ${caveatsHTML(data.caveats)}
+      </div>
+      ${alternativesHTML(data.alternatives)}
+    `;
+  }catch(err){
+    setStatus('recStatus', err.message, 'error');
+  }
+}
+
+// ---------- Crawl ----------
+async function runCrawl(){
+  const query = $('crawlQuery').value.trim();
+  if(!query){ setStatus('crawlStatus', 'Enter a query.', 'error'); return; }
+
+  setStatus('crawlStatus', 'Starting crawl…');
+  try{
+    const data = await apiPost(`/crawl?query=${encodeURIComponent(query)}`);
+    setStatus('crawlStatus', data.message || 'Crawl started in the background.', 'ok');
+  }catch(err){
+    setStatus('crawlStatus', err.message, 'error');
+  }
+}
+</script>
+</body>
+</html>

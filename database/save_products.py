@@ -26,6 +26,7 @@ def save_products(products):
                 reviews = product.reviews
                 image = product.image
                 url = product.url
+                asin = getattr(product, "asin", None)
 
             # Noon returns dictionaries
             else:
@@ -36,6 +37,7 @@ def save_products(products):
                 reviews = product["reviews"]
                 image = product["image"]
                 url = product["url"]
+                asin = product.get("asin")
 
             if not url:
                 continue
@@ -58,6 +60,7 @@ def save_products(products):
                 reviews=reviews,
                 image=image,
                 product_url=url,
+                asin=asin,
             )
 
             db.add(new_product)

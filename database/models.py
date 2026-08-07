@@ -25,3 +25,5 @@ class ProductDB(Base):
     image = Column(String)
 
     product_url = Column(String, unique=True, nullable=False)
+
+    asin = Column(String, unique=True, nullable=True)
