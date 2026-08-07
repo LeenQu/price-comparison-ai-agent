@@ -1,4 +1,4 @@
-# iPhone Price Radar
+# Price Comparison AI Agent
 
 A price-comparison tool that crawls live iPhone listings from **Amazon.sa** and **Noon.com**, stores them in a database, and uses **Claude** (and optionally a local **Ollama** model) to answer questions, compare prices across sites, and recommend the best deal based on your budget and preferences.
 
@@ -34,7 +34,7 @@ Built as an AI-track student project — the focus is on combining web scraping,
 ## Project structure
 
 ```
-price-comparison-ai/
+price-comparison-ai-agent/
 ├── api/
 │   └── main.py                # FastAPI app - all endpoints
 ├── crawlers/
@@ -75,8 +75,8 @@ The project also has `docs/` and `tests/` folders — add a note here about what
 ### 2. Clone and set up a virtual environment
 
 ```powershell
-git clone https://github.com/yourusername/iphone-price-radar.git
-cd iphone-price-radar
+git clone https://github.com/LeenQu/price-comparison-ai-agent.git
+cd price-comparison-ai-agent
 python -m venv venv
 venv\Scripts\activate
 ```
