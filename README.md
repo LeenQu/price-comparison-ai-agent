@@ -57,10 +57,6 @@ price-comparison-ai-agent/
 └── .gitignore
 ```
 
-The project also has `docs/` and `tests/` folders — add a note here about what's in them if you use them for anything specific.
-
-> **Note on the `venv/` folder:** the project may have both `.venv/` and `venv/` present locally depending on setup history - only one is actually used (check which one your terminal prompt shows as active, e.g. `(.venv)`). Both are excluded from git either way, so this doesn't affect what gets pushed, but you can delete whichever one isn't your active environment to avoid confusion.
-
 ---
 
 ## Setup
